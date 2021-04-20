@@ -1,0 +1,57 @@
+.my-banner{
+    width:100%;
+    font-size: 200%;
+    font-family: fantasy;
+    text-align: center;
+    color: pink;
+    background-color: transparent;
+
+}
+
+li{
+    padding-right: 15px;
+}
+.modal-pre-auth{
+    display: block;
+}
+
+.modal-post-auth{
+    display: none;
+}
+
+input{
+    display: block;
+    margin: 8px 0;
+    padding: 8px 2px;
+    border-width: 0 0 2px 0;
+    width: 100%;
+}
+
+
+.error-add-product {
+    color: red;
+}
+
+.error-edit-product {
+    color: red;
+}
+
+textarea {
+    width: 100%;
+    min-height: 150px;
+}
+
+.starrating
+  {
+    cursor: pointer;
+  }
+
+.checked {
+    color: orange;
+  }
+
+body {
+    background-image: url("https://png.pngtree.com/thumb_back/fh260/back_our/20190619/ourmid/pngtree-shopping-mall-supermarket-selection-merchandise-poster-background-material-image_133225.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
