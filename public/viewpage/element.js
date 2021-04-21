@@ -2,7 +2,7 @@ export const menuButtonSignout = document.getElementById("menu-button-signout")
 export const menuButtonHome = document.getElementById("menu-button-home")
 export const menuButtonProfile = document.getElementById("menu-button-profile")
 export const menuButtonPurchase = document.getElementById("menu-button-purchase")
-export const formReviewProduct = document.getElementById("form-review-product")
+export const menuButtonWishList = document.getElementById("menu-button-wishlist")
 
 export const formSearch = document.getElementById('form-search')
 export const formSignIn = document.getElementById("form-signin")

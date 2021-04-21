@@ -49,3 +49,7 @@ SortByLowPrice.addEventListeners()
 
 import * as PurchasePage from './viewpage/purchase_page.js'
 PurchasePage.addEventListeners()
+
+import * as WishListPage from './viewpage/wishlist_page.js'
+WishListPage.addEventListeners()
+

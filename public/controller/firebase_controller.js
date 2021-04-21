@@ -22,6 +22,33 @@ export async function addReview(review) {
     .add(data);
 }
 
+export async function addWishList(wishlist) {
+  const data = wishlist.serialize();
+  await firebase.firestore().collection(Constant.collectionName.WISHLIST).add(data)
+}
+
+
+export async function getwishlist(uid) {
+
+  let products = [];
+
+  const snapShot = await firebase
+    .firestore()
+    .collection(Constant.collectionName.WISHLIST)
+    .where("uid", "==", uid)
+    .orderBy("name")
+    .get();
+
+  snapShot.forEach((doc) => {
+    const p = new Product(doc.data());
+    p.docId = doc.id;
+    products.push(p);
+  });
+  return products;
+
+
+
+}
 
 export async function getProductList() {
   let products = [];
@@ -120,7 +147,7 @@ export async function searchProduct(keywordsArray){
         const t = new Product(doc.data())
         t.docId = doc.id
    
-        if(t.keywordsArray.includes(keywordsArray))
+        if(t.name.includes(keywordsArray))
         {
             products.push(t)
         }

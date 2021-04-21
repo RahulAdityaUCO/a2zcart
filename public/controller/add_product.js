@@ -35,14 +35,12 @@ export function addEventListeners() {
     const name = e.target.name.value
     const price = e.target.price.value
     const summary = e.target.summary.value
-    const timestamp = Date.now()
-    const keywordsArray = name.toLowerCase().match(/\S+/g)
 
     const errorTags = document.getElementsByClassName('error-add-product')
     for(let i=0; i < errorTags.length; i++)
         errorTags[i].innerHTML = ''
     
-    const product = new Product({name, price, summary, timestamp, keywordsArray});
+    const product = new Product({name, price, summary});
 
 
     //check

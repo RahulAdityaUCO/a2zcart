@@ -7,6 +7,10 @@ import * as SortyByHigh from '../viewpage/sorthigh_page.js'
 import * as SortByLow from '../viewpage/sortlow_page.js'
 import * as SortByHighPrice from '../viewpage/sorthighprice_page.js'
 import * as SortByLowPrice from '../viewpage/sortlowprice_page.js'
+import * as Wishlist from '../viewpage/wishlist_page.js'
+import * as ReviewPage from '../viewpage/review_page.js'
+
+
 
 export const routePathname = {
     HOME: '/',
@@ -18,7 +22,8 @@ export const routePathname = {
     SORTBYHIGH: '/sortbyhigh',
     SORTBYLOW: '/sortbylow',
     SORTBYHIGHPRICE: '/sortbyhighprice',
-    SORTBYLOWPRICE: '/sortbylowprice'
+    SORTBYLOWPRICE: '/sortbylowprice',
+    WISHLIST: '/wishlist'
 }
 
 export const routes = [
@@ -30,7 +35,9 @@ export const routes = [
     {pathname: routePathname.SORTBYHIGH, page: SortyByHigh.sort_page},
     {pathname: routePathname.SORTBYLOW, page: SortByLow.sortlow_page},
     {pathname: routePathname.SORTBYHIGHPRICE, page: SortByHighPrice.sorthighprice_page},
-    {pathname: routePathname.SORTBYLOWPRICE, page: SortByLowPrice.sortlowprice_page}
+    {pathname: routePathname.SORTBYLOWPRICE, page: SortByLowPrice.sortlowprice_page},
+    {pathname: routePathname.WISHLIST, page: Wishlist.wishlist_page},
+    {pathname: routePathname.REVIEWS, page: ReviewPage.review_page}
 
 ]
 

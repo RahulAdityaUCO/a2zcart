@@ -7,6 +7,8 @@ import * as Auth from "../controller/auth.js";
 import { ShoppingCart } from "../model/shoppingcart.js";
 import * as Edit from "../controller/edit_product.js";
 import * as Add from "../controller/add_product.js";
+import { Wishlist } from "../model/wishlsit.js";
+import * as ReviewPage from "./review_page.js"
 
 
 export function addEventListeners() {
@@ -67,7 +69,6 @@ export async function home_page() {
 
 
   //event listeners
-
   const plusForms = document.getElementsByClassName("form-increase-qty");
   for (let i = 0; i < plusForms.length; i++) {
     plusForms[i].addEventListener("submit", (e) => {
@@ -117,6 +118,58 @@ for (let i=0; i < deleteButons.length; i++) {
   
   })
 }
+
+const addtolistbuttons = document.getElementsByClassName('form-addto-wishlist')
+for(let i=0; i < addtolistbuttons.length; i++) {
+
+  addtolistbuttons[i].addEventListener('submit', async e => {
+        e.preventDefault()
+        const button = e.target.getElementsByTagName('button')[0]
+        const label = Util.disableButton(button)
+        try {
+          const name = e.target.name.value
+          const price = e.target.price.value
+          const summary = e.target.summary.value
+          const imageName = e.target.imageName.value
+          const imageURL = e.target.imageURL.value
+          const uid = Auth.currentUser.uid
+          const wishlist = new Wishlist({
+            name: name,
+            price: price,
+            summary: summary,
+            imageName: imageName,
+            imageURL: imageURL,
+            uid: uid,
+          })
+          await FirebaseController.addWishList(wishlist)
+          Util.enableButton(button, label)
+        } catch (e) {
+          if (Constant.DEV) console.log(e);
+				Util.popupInfo("Post Review Error", JSON.stringify(e));
+				return;
+        }
+  })
+
+}
+
+
+const reviewForms = document.getElementsByClassName("form-review");
+  for (let i = 0; i < reviewForms.length; i++) {
+    reviewForms[i].addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const button = e.target.getElementsByTagName("button")[0];
+      const label = Util.disableButton(button);
+      const productId = e.target.productId.value;
+      history.pushState(
+        null,
+        null,
+        Routes.routePathname.REVIEWS + "#" + productId
+      );
+     // await ReviewPage.review_page(productId);
+      // Util.enableButton(button, label);
+    });
+  }
+
 
  }
   
@@ -178,7 +231,56 @@ for (let i=0; i < deleteButons.length; i++) {
     });
   }
 
+  const addtolistbuttons = document.getElementsByClassName('form-addto-wishlist')
+  for(let i=0; i < addtolistbuttons.length; i++) {
+  
+    addtolistbuttons[i].addEventListener('submit', async e => {
+          e.preventDefault()
+          const button = e.target.getElementsByTagName('button')[0]
+          const label = Util.disableButton(button)
+          try {
+            const name = e.target.name.value
+            const price = e.target.price.value
+            const summary = e.target.summary.value
+            const imageName = e.target.imageName.value
+            const imageURL = e.target.imageURL.value
+            const uid = Auth.currentUser.uid
+            const wishlist = new Wishlist({
+              name: name,
+              price: price,
+              summary: summary,
+              imageName: imageName,
+              imageURL: imageURL,
+              uid: uid,
+            })
+            await FirebaseController.addWishList(wishlist)
+            Util.enableButton(button, label)
+          } catch (e) {
+            if (Constant.DEV) console.log(e);
+          Util.popupInfo("Post Review Error", JSON.stringify(e));
+          return;
+          }
+    })
+  
 
+  }
+
+  const reviewForms = document.getElementsByClassName("form-review");
+  for (let i = 0; i < reviewForms.length; i++) {
+    reviewForms[i].addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const button = e.target.getElementsByTagName("button")[0];
+      const label = Util.disableButton(button);
+      const productId = e.target.productId.value;
+      history.pushState(
+        null,
+        null,
+        Routes.routePathname.REVIEWS + "#" + productId
+      );
+      await ReviewPage.review_page(productId);
+      // Util.enableButton(button, label);
+    });
+  }
 
 
 
@@ -196,7 +298,7 @@ export function buildProductCard(product, index) {
   ) {
     return `
 		
-		<div id="card-${product.docId}" class="card" style="width: 18rem; display: inline-block;">
+		<div id="card-${product.docId}" class="card" style="width: 20rem;display: inline-block;">
 			<img src="${product.imageURL}" class="card-img-top">
 			<div class="card-body">
 		 	 <h5 class="card-title">${product.name}</h5>
@@ -222,15 +324,31 @@ export function buildProductCard(product, index) {
 				</form>
 			  </div>
 			</div>
+      <div>
 			<form class="form-edit-product float-left" metohd="post">
    				 <input type="hidden" name="docId" value="${product.docId}">
     			<button class="btn btn-outline-primary" type="submit">Edit</button>
-  			</form>
+  			</form> 
   			<form class="form-delete-product float-right" metohd="post">
  			 <input type="hidden" name="docId" value="${product.docId}">
  			 <input type="hidden" name="imageName" value="${product.imageName}">
  			 <button class="btn btn-outline-danger" type="submit">Delete</button>
 		</form>
+    </div>
+    <div>
+    <form class="form-addto-wishlist" method="post>
+          <input type="hidden" name="docId" value="${product.docId}">
+          <input type="hidden" name="imageName" value="${product.imageName}">
+          <input type="hidden" name="imageURL" value="${product.imageURL}">
+          <input type="hidden" name="name" value="${product.name}">
+          <input type="hidden" name="price" value="${product.price}">
+          <input type="hidden" name="summary" value="${product.summary}">
+          <button class="btn btn-outline-primary" type="submit">Add to Wishlist</button>
+    </form>
+    <form class="form-review float-right" method="post">
+        <input type="hidden" name="productId" value="${product.docId}">
+        <button type="submit" class="btn btn-outline-success" >Reviews </button> 
+    </div>
 	  </div>
 		
 		`;
@@ -261,7 +379,21 @@ export function buildProductCard(product, index) {
 					<input type="hidden" name="index" value="${index}">
 					<button class="btn btn-outline-danger" type="submit">&plus;</button>
 				</form>
-			  </div>
+        <div>
+        <form class="form-addto-wishlist float-left" method="post">
+        <input type="hidden" name="docId" value="${product.docId}">
+        <input type="hidden" name="imageName" value="${product.imageName}">
+        <input type="hidden" name="imageURL" value="${product.imageURL}">
+        <input type="hidden" name="name" value="${product.name}">
+        <input type="hidden" name="price" value="${product.price}">
+        <input type="hidden" name="summary" value="${product.summary}">
+        <button class="btn btn-outline-primary" type="submit">Add to Wishlist</button>
+        </form>
+        <form class="form-review float-right" method="post">
+        <input type="hidden" name="productId" value="${product.docId}">
+        <button type="submit" class="btn btn-outline-success" >Reviews </button> 
+        </div>
+        </div>
 			</div>
 	  </div>
 		
