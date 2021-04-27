@@ -1,18 +1,16 @@
 import * as Element from "./element.js";
-import * as Util from "./util.js";
-import * as Auth from "../controller/auth.js";
 import * as FirebaseController from "../controller/firebase_controller.js";
-import * as Constants from "../model/constant.js";
-import * as Home from "./home_page.js";
-import * as Routes from "../controller/routes.js";
+
 
 let reviews;
 let len;
 let prodSummary;
 let avgRating;
 let actionBtn;
+
+
 export async function productreview_page(productId) {
- 
+  
   try {
     reviews = await FirebaseController.getReviews(productId);
     if (!reviews.review || reviews.review.length == 0) {
@@ -33,7 +31,7 @@ export async function productreview_page(productId) {
   for (let index = 0; index < reviews.length; index++) {
     let rate = "";
     let dt = new Date(reviews[index].timeStamp);
-    
+    actionBtn = "";
 
     if (index == 0) {
       html += `
@@ -96,5 +94,7 @@ export async function productreview_page(productId) {
   }
   html += `</div>`;
 
- 
+  Element.mainContent.innerHTML = html;
+
+  
 }
