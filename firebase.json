@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "ac-cmsc5373-sprint3",
     "public": "public",
     "ignore": [
       "firebase.json",

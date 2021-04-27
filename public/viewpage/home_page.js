@@ -8,8 +8,8 @@ import { ShoppingCart } from "../model/shoppingcart.js";
 import * as Edit from "../controller/edit_product.js";
 import * as Add from "../controller/add_product.js";
 import { Wishlist } from "../model/wishlsit.js";
-import * as ReviewPage from "./review_page.js"
-
+import * as ReviewPage from "./review_page.js";
+import * as ProductReview from './product_review.js'
 
 export function addEventListeners() {
   Element.menuButtonHome.addEventListener("click", async () => {
@@ -20,119 +20,152 @@ export function addEventListeners() {
   });
 }
 
+
 let products;
+let nextpage = null;
+let prevpage = null;
+let pageno = 1;
 export let cart;
-export async function home_page() {
-  
+export async function home_page(dta = null, checkpr = null) {
   if (
     Auth.currentUser &&
     Constant.adminEmails.includes(Auth.currentUser.email)
   ) {
-    
     let html = `
     <div>
         <button id="button-add-product" class="btn btn-outline-danger">+ Add Product</button>
     </div>
   `;
 
-   try {
-    products = await FirebaseController.getProductList();
-    if (cart && cart.items) {
-      cart.items.forEach((item) => {
-        const product = products.find((p) => {
-          return item.docId == p.docId;
+    try {
+      products = await FirebaseController.getProductList(dta,checkpr);
+      var len = products.len;
+      products = products.products;
+      if(products.length > 7){
+        nextpage = products[products.length - 1].name;
+      }
+      else{
+        nextpage = null;
+      }
+      prevpage = products[products.length - 1].name;
+     
+       if (cart && cart.items) {
+        cart.items.forEach((item) => {
+          const product = products.find((p) => {
+            return item.docId == p.docId;
+          });
+          product.qty = item.qty;
         });
-        product.qty = item.qty;
+      }
+
+      let index = 0;
+      products.forEach((product) => {
+        html += buildProductCard(product, index);
+        ++index;
+      });
+
+    
+      html += `<div><ul style="list-style: none;display: inline-flex">`;
+      if(pageno >1){
+        html += `<li><button class="btn btn-primary" id="prev-product">Prev</button></li>`;
+      }
+      if(nextpage !=null){
+        html += `<li><button class="btn btn-primary" id="next-product">Next</button></li>`;
+      }
+      html += `</ul></div>`;
+    } catch (e) {
+      // if (Constant.DEV) console.log(e);
+      // Util.popupInfo("get product list error", JSON.stringify(e));
+      // return;
+    }
+
+    Element.mainContent.innerHTML = html;
+
+    $("#next-product").on("click",function(){
+      pageno++;
+      home_page(nextpage,"next");
+    })
+
+    $("#prev-product").on("click",function(){
+      pageno--;
+      home_page(prevpage,"prev");
+    })
+
+    document
+      .getElementById("button-add-product")
+      .addEventListener("click", () => {
+        Element.formAddProduct.reset();
+        Add.resetImageSelection();
+        $("#modal-add-product").modal("show");
+      });
+    //event listeners
+    const plusForms = document.getElementsByClassName("form-increase-qty");
+    for (let i = 0; i < plusForms.length; i++) {
+      plusForms[i].addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const p = products[e.target.index.value];
+        cart.addItem(p);
+        document.getElementById(`qty-${p.docId}`).innerHTML = p.qty;
+
+        Element.shoppingcartCount.innerHTML = cart.getTotalQty();
       });
     }
 
-    let index = 0;
-    products.forEach((product) => {
-      html += buildProductCard(product, index);
-      ++index;
-    });
-  } catch (e) {
-    if (Constant.DEV) console.log(e);
-    Util.popupInfo("get product list error", JSON.stringify(e));
-    return;
-  }
+    const minusForms = document.getElementsByClassName("form-decrease-qty");
+    for (let i = 0; i < minusForms.length; i++) {
+      minusForms[i].addEventListener("submit", (e) => {
+        e.preventDefault();
 
-  Element.mainContent.innerHTML = html;
+        const p = products[e.target.index.value];
+        cart.removeItem(p);
+        document.getElementById(`qty-${p.docId}`).innerHTML =
+          p.qty == null || p.qty == 0 ? "Add" : p.qty;
 
-  document
-    .getElementById("button-add-product")
-    .addEventListener("click", () => {
-      Element.formAddProduct.reset();
-      Add.resetImageSelection();
-      $("#modal-add-product").modal("show");
-    });
+        Element.shoppingcartCount.innerHTML = cart.getTotalQty();
+      });
+    }
 
+    const editButtons = document.getElementsByClassName("form-edit-product");
+    for (let i = 0; i < editButtons.length; i++) {
+      editButtons[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
+        await Edit.editProduct(e.target.docId.value);
+        Util.enableButton(button, label);
+      });
+    }
 
-  //event listeners
-  const plusForms = document.getElementsByClassName("form-increase-qty");
-  for (let i = 0; i < plusForms.length; i++) {
-    plusForms[i].addEventListener("submit", (e) => {
-      e.preventDefault();
+    const deleteButons = document.getElementsByClassName("form-delete-product");
+    for (let i = 0; i < deleteButons.length; i++) {
+      deleteButons[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
+        await Edit.deleteProduct(
+          e.target.docId.value,
+          e.target.imageName.value
+        );
+        Util.enableButton(button, label);
+      });
+    }
 
-      const p = products[e.target.index.value];
-      cart.addItem(p);
-      document.getElementById(`qty-${p.docId}`).innerHTML = p.qty;
-
-      Element.shoppingcartCount.innerHTML = cart.getTotalQty();
-    });
-  }
-
-  const minusForms = document.getElementsByClassName("form-decrease-qty");
-  for (let i = 0; i < minusForms.length; i++) {
-    minusForms[i].addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const p = products[e.target.index.value];
-      cart.removeItem(p);
-      document.getElementById(`qty-${p.docId}`).innerHTML =
-        p.qty == null || p.qty == 0 ? "Add" : p.qty;
-
-      Element.shoppingcartCount.innerHTML = cart.getTotalQty();
-    });
-  }
-
-  const editButtons = document.getElementsByClassName('form-edit-product')
-  for (let i = 0; i < editButtons.length; i++) {
-	editButtons[i].addEventListener('submit' , async e => {
-	  e.preventDefault()
-	  const button = e.target.getElementsByTagName('button')[0]
-	  const label = Util.disableButton(button)
-	  await Edit.editProduct(e.target.docId.value)
-	  Util.enableButton(button, label)
-	})
-  }
-
-const deleteButons = document.getElementsByClassName('form-delete-product')
-for (let i=0; i < deleteButons.length; i++) {
-  deleteButons[i].addEventListener('submit' , async e => {
-    e.preventDefault()
-    const button = e.target.getElementsByTagName('button')[0]
-    const label = Util.disableButton(button)
-    await Edit.deleteProduct(e.target.docId.value, e.target.imageName.value)
-    Util.enableButton(button, label)
-  
-  })
-}
-
-const addtolistbuttons = document.getElementsByClassName('form-addto-wishlist')
-for(let i=0; i < addtolistbuttons.length; i++) {
-
-  addtolistbuttons[i].addEventListener('submit', async e => {
-        e.preventDefault()
-        const button = e.target.getElementsByTagName('button')[0]
-        const label = Util.disableButton(button)
+    const addtolistbuttons = document.getElementsByClassName(
+      "form-addto-wishlist"
+    );
+    for (let i = 0; i < addtolistbuttons.length; i++) {
+      addtolistbuttons[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
         try {
-          const name = e.target.name.value
-          const price = e.target.price.value
-          const summary = e.target.summary.value
-          const imageName = e.target.imageName.value
-          const imageURL = e.target.imageURL.value
-          const uid = Auth.currentUser.uid
+          const name = e.target.name.value;
+          const price = e.target.price.value;
+          const summary = e.target.summary.value;
+          const imageName = e.target.imageName.value;
+          const imageURL = e.target.imageURL.value;
+          const uid = Auth.currentUser.uid;
           const wishlist = new Wishlist({
             name: name,
             price: price,
@@ -140,155 +173,191 @@ for(let i=0; i < addtolistbuttons.length; i++) {
             imageName: imageName,
             imageURL: imageURL,
             uid: uid,
-          })
-          await FirebaseController.addWishList(wishlist)
-          Util.enableButton(button, label)
+          });
+          await FirebaseController.addWishList(wishlist);
+          Util.enableButton(button, label);
         } catch (e) {
           if (Constant.DEV) console.log(e);
-				Util.popupInfo("Post Review Error", JSON.stringify(e));
-				return;
+          Util.popupInfo("Post Review Error", JSON.stringify(e));
+          return;
         }
-  })
-
-}
-
-
-const reviewForms = document.getElementsByClassName("form-review");
-  for (let i = 0; i < reviewForms.length; i++) {
-    reviewForms[i].addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const button = e.target.getElementsByTagName("button")[0];
-      const label = Util.disableButton(button);
-      const productId = e.target.productId.value;
-      history.pushState(
-        null,
-        null,
-        Routes.routePathname.REVIEWS + "#" + productId
-      );
-     // await ReviewPage.review_page(productId);
-      // Util.enableButton(button, label);
-    });
-  }
-
-
- }
-  
-  else {
-  
-    let html = `<h1>Home Page</h1>`;
-    
-
-  try {
-    products = await FirebaseController.getProductList();
-    if (cart && cart.items) {
-      cart.items.forEach((item) => {
-        const product = products.find((p) => {
-          return item.docId == p.docId;
-        });
-        product.qty = item.qty;
       });
     }
 
-    let index = 0;
-    products.forEach((product) => {
-      html += buildProductCard(product, index);
-      ++index;
-    });
-  } catch (e) {
-    if (Constant.DEV) console.log(e);
-    Util.popupInfo("get product list error", JSON.stringify(e));
-    return;
-  }
+    const reviewForms = document.getElementsByClassName("form-review");
+    for (let i = 0; i < reviewForms.length; i++) {
+      reviewForms[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
+        const productId = e.target.productId.value;
+        history.pushState(
+          null,
+          null,
+          Routes.routePathname.REVIEWS + "?id=" + productId
+        );
+        ReviewPage.review_page(productId);
+      });
+    }
+  } else {
+    
+    let html = `<h1>Home Page</h1>`
+   
+    try {
+      products = await FirebaseController.getProductList(dta,checkpr);
+      var len = products.len;
+      products = products.products;
+      if(products.length > 7){
+        nextpage = products[products.length - 1].name;
+      }
+      else{
+        nextpage = null;
+      }
+      prevpage = products[products.length - 1].name;
+     
+       if (cart && cart.items) {
+        cart.items.forEach((item) => {
+          const product = products.find((p) => {
+            return item.docId == p.docId;
+          });
+          product.qty = item.qty;
+        });
+      }
 
-  Element.mainContent.innerHTML = html;
+      let index = 0;
+      products.forEach((product) => {
+        html += buildProductCard(product, index);
+        ++index;
+      });
 
-  //event listeners
+    
+      html += `<div><ul style="list-style: none;display: inline-flex">`;
+      if(pageno >1){
+        html += `<li><button class="btn btn-primary" id="prev-product">Prev</button></li>`;
+      }
+      if(nextpage !=null){
+        html += `<li><button class="btn btn-primary" id="next-product">Next</button></li>`;
+      }
+      html += `</ul></div>`;
+    } catch (e) {
+      // if (Constant.DEV) console.log(e);
+      // Util.popupInfo("get product list error", JSON.stringify(e));
+      // return;
+    }
 
-  const plusForms = document.getElementsByClassName("form-increase-qty");
-  for (let i = 0; i < plusForms.length; i++) {
-    plusForms[i].addEventListener("submit", (e) => {
-      e.preventDefault();
+    Element.mainContent.innerHTML = html;
 
-      const p = products[e.target.index.value];
-      cart.addItem(p);
-      document.getElementById(`qty-${p.docId}`).innerHTML = p.qty;
+    $("#next-product").on("click",function(){
+      pageno++;
+      home_page(nextpage,"next");
+    })
 
-      Element.shoppingcartCount.innerHTML = cart.getTotalQty();
-    });
-  }
+    $("#prev-product").on("click",function(){
+      pageno--;
+      home_page(prevpage,"prev");
+    })
 
-  const minusForms = document.getElementsByClassName("form-decrease-qty");
-  for (let i = 0; i < minusForms.length; i++) {
-    minusForms[i].addEventListener("submit", (e) => {
-      e.preventDefault();
+    //event listeners
 
-      const p = products[e.target.index.value];
-      cart.removeItem(p);
-      document.getElementById(`qty-${p.docId}`).innerHTML =
-        p.qty == null || p.qty == 0 ? "Add" : p.qty;
+    const plusForms = document.getElementsByClassName("form-increase-qty");
+    for (let i = 0; i < plusForms.length; i++) {
+      plusForms[i].addEventListener("submit", (e) => {
+        e.preventDefault();
 
-      Element.shoppingcartCount.innerHTML = cart.getTotalQty();
-    });
-  }
+        const p = products[e.target.index.value];
+        cart.addItem(p);
+        document.getElementById(`qty-${p.docId}`).innerHTML = p.qty;
 
-  const addtolistbuttons = document.getElementsByClassName('form-addto-wishlist')
-  for(let i=0; i < addtolistbuttons.length; i++) {
-  
-    addtolistbuttons[i].addEventListener('submit', async e => {
-          e.preventDefault()
-          const button = e.target.getElementsByTagName('button')[0]
-          const label = Util.disableButton(button)
-          try {
-            const name = e.target.name.value
-            const price = e.target.price.value
-            const summary = e.target.summary.value
-            const imageName = e.target.imageName.value
-            const imageURL = e.target.imageURL.value
-            const uid = Auth.currentUser.uid
-            const wishlist = new Wishlist({
-              name: name,
-              price: price,
-              summary: summary,
-              imageName: imageName,
-              imageURL: imageURL,
-              uid: uid,
-            })
-            await FirebaseController.addWishList(wishlist)
-            Util.enableButton(button, label)
-          } catch (e) {
-            if (Constant.DEV) console.log(e);
+        Element.shoppingcartCount.innerHTML = cart.getTotalQty();
+      });
+    }
+
+    const minusForms = document.getElementsByClassName("form-decrease-qty");
+    for (let i = 0; i < minusForms.length; i++) {
+      minusForms[i].addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const p = products[e.target.index.value];
+        cart.removeItem(p);
+        document.getElementById(`qty-${p.docId}`).innerHTML =
+          p.qty == null || p.qty == 0 ? "Add" : p.qty;
+
+        Element.shoppingcartCount.innerHTML = cart.getTotalQty();
+      });
+    }
+
+
+
+
+    const addtolistbuttons = document.getElementsByClassName(
+      "form-addto-wishlist"
+    );
+    for (let i = 0; i < addtolistbuttons.length; i++) {
+      addtolistbuttons[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
+        try {
+          const name = e.target.name.value;
+          const price = e.target.price.value;
+          const summary = e.target.summary.value;
+          const imageName = e.target.imageName.value;
+          const imageURL = e.target.imageURL.value;
+          const uid = Auth.currentUser.uid;
+          const docId = e.target.docId.value;
+          const wishlist = new Wishlist({
+            name: name,
+            price: price,
+            summary: summary,
+            imageName: imageName,
+            imageURL: imageURL,
+            uid: uid,
+            docId: docId
+          });
+          await FirebaseController.addWishList(wishlist);
+          Util.enableButton(button, label);
+        } catch (e) {
+          if (Constant.DEV) console.log(e);
           Util.popupInfo("Post Review Error", JSON.stringify(e));
           return;
-          }
-    })
-  
+        }
+      });
+    }
 
+    const reviewForms = document.getElementsByClassName("form-review");
+    for (let i = 0; i < reviewForms.length; i++) {
+      reviewForms[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
+        const productId = e.target.productId.value;
+        history.pushState(
+          null,
+          null,
+          Routes.routePathname.REVIEWS + "#" + productId
+        );
+        await ReviewPage.review_page(productId);
+        // Util.enableButton(button, label);
+      });
+    }
+
+    const productreviewForms = document.getElementsByClassName("product-review");
+    for (let i = 0; i < productreviewForms.length; i++) {
+      productreviewForms[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
+        const productId = e.target.productId.value;
+        history.pushState(
+          null,
+          null,
+          Routes.routePathname.REVIEWS + "#" + productId
+        );
+        await ProductReview.productreview_page(productId);
+        // Util.enableButton(button, label);
+      });
+    }
   }
-
-  const reviewForms = document.getElementsByClassName("form-review");
-  for (let i = 0; i < reviewForms.length; i++) {
-    reviewForms[i].addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const button = e.target.getElementsByTagName("button")[0];
-      const label = Util.disableButton(button);
-      const productId = e.target.productId.value;
-      history.pushState(
-        null,
-        null,
-        Routes.routePathname.REVIEWS + "#" + productId
-      );
-      await ReviewPage.review_page(productId);
-      // Util.enableButton(button, label);
-    });
-  }
-
-
-
-}
-  //if signed in make a new cart
-  //if(Auth.currentUser){
-  //	  cart = new ShoppingCart(Auth.currentUser.uid);
-  //}
 }
 
 export function buildProductCard(product, index) {
@@ -298,7 +367,9 @@ export function buildProductCard(product, index) {
   ) {
     return `
 		
-		<div id="card-${product.docId}" class="card" style="width: 20rem;display: inline-block;">
+		<div id="card-${
+      product.docId
+    }" class="card" style="width: 15rem;display: inline-block;">
 			<img src="${product.imageURL}" class="card-img-top">
 			<div class="card-body">
 		 	 <h5 class="card-title">${product.name}</h5>
@@ -348,14 +419,20 @@ export function buildProductCard(product, index) {
     <form class="form-review float-right" method="post">
         <input type="hidden" name="productId" value="${product.docId}">
         <button type="submit" class="btn btn-outline-success" >Reviews </button> 
+    </form>
     </div>
-	  </div>
+    </div>
 		
 		`;
-  } else {
+  } 
+  
+  
+else if(Auth.currentUser) {
     return `
 		
-		<div id="card-${product.docId}" class="card" style="width: 18rem; display: inline-block;">
+		<div id="card-${
+      product.docId
+    }" class="card" style="width: 18rem; display: inline-block;">
 			<img src="${product.imageURL}" class="card-img-top">
 			<div class="card-body">
 		 	 <h5 class="card-title">${product.name}</h5>
@@ -391,9 +468,35 @@ export function buildProductCard(product, index) {
         </form>
         <form class="form-review float-right" method="post">
         <input type="hidden" name="productId" value="${product.docId}">
-        <button type="submit" class="btn btn-outline-success" >Reviews </button> 
-        </div>
-        </div>
+        <button type="submit" class="btn btn-outline-success" >Reviews </button>
+        </form> 
+        </div> 
+        </div> 
+			</div>
+	  </div>
+		
+		`;
+  }
+
+  else {
+  
+    
+    return `
+		
+		<div id="card-${
+      product.docId
+    }" class="card" style="width: 18rem; display: inline-block;">
+			<img src="${product.imageURL}" class="card-img-top">
+			<div class="card-body">
+		 	 <h5 class="card-title">${product.name}</h5>
+		 	 <p class="card-text">
+			 	${Util.currency(product.price)} <br> 
+				 ${product.summary} 
+			  </p>
+        <form class="product-review d-inline-block" method="post">
+        <input type="hidden" name="productId" value="${product.docId}">
+        <button type="submit" class="btn btn-outline-success" > Product Reviews </button>
+        </form>
 			</div>
 	  </div>
 		

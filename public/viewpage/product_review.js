@@ -11,11 +11,8 @@ let len;
 let prodSummary;
 let avgRating;
 let actionBtn;
-export async function review_page(productId) {
-  if (!Auth.currentUser) {
-    Element.mainContent.innerHTML = "<h1>Protected Page</h1>";
-    return;
-  }
+export async function productreview_page(productId) {
+ 
   try {
     reviews = await FirebaseController.getReviews(productId);
     if (!reviews.review || reviews.review.length == 0) {
@@ -37,32 +34,6 @@ export async function review_page(productId) {
     let rate = "";
     let dt = new Date(reviews[index].timeStamp);
     
-    if 
-      (Auth.currentUser &&
-      Constants.adminEmails.includes(Auth.currentUser.email)
-    ) {
-      actionBtn = `
-        <button class="btn btn-warning delete-adminreview" value="${reviews[index].id}">Delete</button>
-        
-      `;
-    
-      if(reviews[index].mail == Auth.currentUser.email) {
-        actionBtn = `
-        <button class="btn btn-primary edit-review" value="${reviews[index].id}" data-price="${prodSummary.price}">Edit</button>
-        <button class="btn btn-warning delete-review" value="${reviews[index].id}">Delete</button>
-      `;
-
-      }
-    }
-    
-    else if(reviews[index].mail == Auth.currentUser.email) {
-      actionBtn = `
-        <button class="btn btn-primary edit-review" value="${reviews[index].id}" data-price="${prodSummary.price}">Edit</button>
-        <button class="btn btn-warning delete-review" value="${reviews[index].id}">Delete</button>
-      `;
-    } else {
-      actionBtn = "";
-    }
 
     if (index == 0) {
       html += `
@@ -125,63 +96,5 @@ export async function review_page(productId) {
   }
   html += `</div>`;
 
-  Element.mainContent.innerHTML = html;
-
-  // Delete action
-  const deleteBtn = document.getElementsByClassName("delete-review");
-
-  for (let i = 0; i < deleteBtn.length; i++) {
-    deleteBtn[i].addEventListener("click", function () {
-      let tmpid = this.getAttribute("value");
-      let ch = confirm("Are you sure ?");
-      if (!ch) {
-        return;
-      }
-      FirebaseController.deleteReview(tmpid).then((result) => {
-        alert(result.msg);
-        window.location.reload();
-      });
-    });
-  }
-
-  const deleteAdminBtn = document.getElementsByClassName("delete-adminreview");
-
-  for (let i = 0; i < deleteAdminBtn.length; i++) {
-    deleteAdminBtn[i].addEventListener("click", function () {
-      let tmpid = this.getAttribute("value");
-      let ch = confirm("Are you sure ?");
-      if (!ch) {
-        return;
-      }
-      FirebaseController.deleteAdminReview(tmpid).then((result) => {
-        alert(result.msg);
-        window.location.reload();
-      });
-    });
-  }
-
-  // Edit Action
-  const editBtn = document.getElementsByClassName("edit-review");
-
-  for (let i = 0; i < editBtn.length; i++) {
-    editBtn[i].addEventListener("click", function () {
-      let tmpid = this.getAttribute("value");
-      let price = this.getAttribute("data-price");
-
-      FirebaseController.getReviewById(tmpid).then((result) => {
-        Element.modalReviewTitle.innerHTML = `
-        <img src="${result.imageURL}" width="150px">
-        <h5>Review For the ${result.imageName}</h5> 
-        <h5> Price : ${price}</h5>
-        `;
-        $("#ratingval").val(result.rating);
-        for (let ij = 0; ij < parseInt(result.rating); ij++) {
-          document.querySelectorAll('#ratingstars span')[ij].classList.add('mark-color')
-        }
-        $("#reviewid").val(tmpid);
-        $("#content-review").val(result.content);
-        $("#modal-review-product").modal("show");
-      });
-    });
-  }
+ 
 }

@@ -35,12 +35,6 @@ Add.addEventListeners()
 import * as Search from './viewpage/search_page.js'
 Search.addEventListeners()
 
-import * as SortByLow from './viewpage/sortlow_page.js'
-SortByLow.addEventListeners()
-
-import * as SortByHigh from './viewpage/sorthigh_page.js'
-SortByHigh.addEventListeners()
-
 import * as SortByHighPrice from './viewpage/sorthighprice_page.js'
 SortByHighPrice.addEventListeners()
 
@@ -53,3 +47,5 @@ PurchasePage.addEventListeners()
 import * as WishListPage from './viewpage/wishlist_page.js'
 WishListPage.addEventListeners()
 
+import * as UserPage from './viewpage/user_page.js'
+UserPage.addEventListeners()

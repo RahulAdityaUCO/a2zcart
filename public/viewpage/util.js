@@ -28,3 +28,4 @@ export function enableButton(btn,label){
 export function currency(money){
 	return new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(money)
 }
+

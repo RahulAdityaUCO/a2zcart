@@ -21,7 +21,7 @@ export function addEventListeners() {
 let products;
 export let cart;
 export async function sortlowprice_page() {
-  
+ 
   if (
     Auth.currentUser &&
     Constant.adminEmails.includes(Auth.currentUser.email)
@@ -56,7 +56,7 @@ export async function sortlowprice_page() {
   }
 
   Element.mainContent.innerHTML = html;
-
+  getShoppingCartFromLocalStorage();
   document
     .getElementById("button-add-product")
     .addEventListener("click", () => {
@@ -67,7 +67,6 @@ export async function sortlowprice_page() {
 
 
   //event listeners
-
   const plusForms = document.getElementsByClassName("form-increase-qty");
   for (let i = 0; i < plusForms.length; i++) {
     plusForms[i].addEventListener("submit", (e) => {

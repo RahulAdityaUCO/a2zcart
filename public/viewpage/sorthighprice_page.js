@@ -21,7 +21,7 @@ export function addEventListeners() {
 let products;
 export let cart;
 export async function sorthighprice_page() {
-  
+
   if (
     Auth.currentUser &&
     Constant.adminEmails.includes(Auth.currentUser.email)
@@ -56,7 +56,7 @@ export async function sorthighprice_page() {
   }
 
   Element.mainContent.innerHTML = html;
-
+  getShoppingCartFromLocalStorage();
   document
     .getElementById("button-add-product")
     .addEventListener("click", () => {

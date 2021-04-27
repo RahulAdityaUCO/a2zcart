@@ -8,7 +8,8 @@ export class Wishlist {
 		this.summary = data.summary
 		this.imageName = data.imageName
 		this.imageURL = data.imageURL
-        this.uid = data.uid
+    this.uid = data.uid
+    this.docId = data.docId
 	}
 
 
@@ -22,8 +23,9 @@ export class Wishlist {
 			summary: this.summary,
 			imageName: this.imageName,
 			imageURL: this.imageURL,
-            uid: this.uid
-        }
+      uid: this.uid,
+      docId: this.docId  
+    }
 
 
 	}
@@ -36,6 +38,7 @@ export class Wishlist {
         if(this.imageName) p.imageName = this.imageName 
         if (this.imageURL) p.imageURL = this.imageURL
         if (this.uid) p.uid = this.uid
+        if(this.docId) p.docId = this.docId
         return p
     }
 
@@ -47,6 +50,7 @@ export class Wishlist {
         sc.imageName = data.imageName
         sc.imageURL = data.imageURL
         sc.uid = data.uid
+        sc.docId = data.docId
       return sc;
     }
   }

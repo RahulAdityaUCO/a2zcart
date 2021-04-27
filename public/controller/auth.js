@@ -85,12 +85,22 @@ export async function addEventListeners(){
 
             let ele = document.getElementsByClassName("modal-pre-auth")
             for(let i =0;i <ele.length;i++)
-                ele[i].style.display = 'none'
-             ele = document.getElementsByClassName("modal-post-auth")
+            {  
+            ele[i].style.display = 'none'
+            } 
+            ele = document.getElementsByClassName("modal-post-auth")
                 for(let i =0;i <ele.length;i++)
-                    ele[i].style.display = 'block'
-
-            const path = window.location.pathname
+                {  
+                ele[i].style.display = 'block'
+                }
+            document.getElementById("menu-button-users").style.display = 'none'
+            if(Constant.adminEmails.includes(user.email)) {
+                document.getElementById("menu-button-users").style.display = 'block'
+            }
+            
+            
+            
+                    const path = window.location.pathname
             Routes.routing(path);
         }else{
             currentUser = null;

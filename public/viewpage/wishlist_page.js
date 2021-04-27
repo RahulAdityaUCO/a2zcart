@@ -22,14 +22,8 @@ export let cart
 export async function wishlist_page() {
   let html = `<h1>Mywishlist Page</h1>`;
  
-
-  //if signed in make a new cart
-  //if(Auth.currentUser){
-//	  cart = new ShoppingCart(Auth.currentUser.uid);
-  //}
-
+const uid = Auth.currentUser.uid;
   try {
-    const uid = Auth.currentUser.uid
     products = await FirebaseController.getwishlist(uid);
 	if(cart && cart.items){
 		cart.items.forEach(item =>{
@@ -53,7 +47,7 @@ export async function wishlist_page() {
 
   Element.mainContent.innerHTML = html;
 
-
+  getShoppingCartFromLocalStorage();
   //event listeners
 
   const plusForms = document.getElementsByClassName('form-increase-qty');
@@ -84,12 +78,35 @@ export async function wishlist_page() {
   }
 
 
+  const removefromWishList = document.getElementsByClassName("form-remove-wishlist");
+    for (let i = 0; i < removefromWishList.length; i++) {
+      removefromWishList[i].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = e.target.getElementsByTagName("button")[0];
+        const label = Util.disableButton(button);
+          try {
+            const docId = e.target.docId.value;
+            await FirebaseController.deleteWishList(docId)
+            Util.enableButton(button, label);
+			const card = document.getElementById(`card-${docId}`)
+         	card.remove()
+         	Util.popupInfo('Deleted', `${docId} has been successfully deleted`)
+          } catch (e) {
+            if (Constant.DEV) console.log(e);
+          Util.popupInfo("Delete wihlist Error", JSON.stringify(e));
+          return;
+          }
+      })
+	}
+
 }
 
 function buildProductCard(product,index) {
   return `
 		
-		<div class="card" style="width: 18rem; display: inline-block;">
+		<div id="card-${
+			product.docId
+		  }" class="card" style="width: 18rem; display: inline-block;">
 			<img src="${product.imageURL}" class="card-img-top">
 			<div class="card-body">
 		 	 <h5 class="card-title">${product.name}</h5>
@@ -109,6 +126,10 @@ function buildProductCard(product,index) {
 					<input type="hidden" name="index" value="${index}">
 					<button class="btn btn-outline-danger" type="submit">&plus;</button>
 				</form>
+			<form class="form-remove-wishlist float-left" method="post">
+        	<input type="hidden" name="docId" value="${product.docId}">
+        	<button class="btn btn-outline-primary" type="submit">Remove from Wishlist</button>
+        	</form>
 			  </div>
 			</div>
 	  </div>
