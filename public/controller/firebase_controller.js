@@ -374,6 +374,7 @@ export async function getReviews(productId) {
   };
 }
 
+
 export async function deleteReview(uid) {
   const snapShot = await firebase
     .firestore()

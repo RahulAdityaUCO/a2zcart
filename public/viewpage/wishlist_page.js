@@ -47,35 +47,7 @@ const uid = Auth.currentUser.uid;
 
   Element.mainContent.innerHTML = html;
 
-  getShoppingCartFromLocalStorage();
-  //event listeners
-
-  const plusForms = document.getElementsByClassName('form-increase-qty');
-  for(let i = 0;i<plusForms.length;i++){
-	  plusForms[i].addEventListener('submit', e =>{
-		  e.preventDefault();
-
-		  const p = products[e.target.index.value]
-		  cart.addItem(p);
-		  document.getElementById(`qty-${p.docId}`).innerHTML = p.qty
-
-		  Element.shoppingcartCount.innerHTML = cart.getTotalQty();
-	  })
-  }
-
-  const minusForms = document.getElementsByClassName('form-decrease-qty');
-  for(let i =0;i < minusForms.length;i++){
-		minusForms[i].addEventListener('submit', e =>{
-			e.preventDefault();
-
-		const p = products[e.target.index.value];
-		cart.removeItem(p)
-		document.getElementById(`qty-${p.docId}`).innerHTML = (p.qty == null || p.qty == 0 ? 'Add' : p.qty);
-
-		Element.shoppingcartCount.innerHTML = cart.getTotalQty();
-		})	
-	
-  }
+  
 
 
   const removefromWishList = document.getElementsByClassName("form-remove-wishlist");
@@ -115,17 +87,6 @@ function buildProductCard(product,index) {
 				 ${product.summary} 
 			  </p>
 		 	  <div class="container pt-3 bg-light ${Auth.currentUser ? 'd-block' : 'd-none'}">
-				<form method="post" class="d-inline form-decrease-qty">
-					<input type="hidden" name="index" value="${index}">
-					<button class="btn btn-outline-danger" type="submit">&minus;</button>
-				</form>
-				<div id="qty-${product.docId}" class="container rounded text-center text-white bg-primary d-inline-block w-50"> 
-					${product.qty == null || product.qty == 0 ? 'Add' : product.qty}
-				</div>
-				<form method="post" class="d-inline form-increase-qty">
-					<input type="hidden" name="index" value="${index}">
-					<button class="btn btn-outline-danger" type="submit">&plus;</button>
-				</form>
 			<form class="form-remove-wishlist float-left" method="post">
         	<input type="hidden" name="docId" value="${product.docId}">
         	<button class="btn btn-outline-primary" type="submit">Remove from Wishlist</button>

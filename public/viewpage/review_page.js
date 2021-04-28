@@ -1,16 +1,15 @@
 import * as Element from "./element.js";
-import * as Util from "./util.js";
 import * as Auth from "../controller/auth.js";
 import * as FirebaseController from "../controller/firebase_controller.js";
-import * as Constants from "../model/constant.js";
-import * as Home from "./home_page.js";
-import * as Routes from "../controller/routes.js";
+import * as Constants from '../model/constant.js'
+import * as Home from './home_page.js'
 
 let reviews;
 let len;
 let prodSummary;
 let avgRating;
 let actionBtn;
+
 export async function review_page(productId) {
   if (!Auth.currentUser) {
     Element.mainContent.innerHTML = "<h1>Protected Page</h1>";
@@ -23,10 +22,12 @@ export async function review_page(productId) {
       return;
     }
   } catch (err) {}
+
   len = reviews.len;
   prodSummary = reviews.prodSummary;
   avgRating = reviews.avgRating;
   reviews = reviews.review;
+  
   let html = `<h1>Reviews</h1>`;
 
   html += `
@@ -36,26 +37,36 @@ export async function review_page(productId) {
   for (let index = 0; index < reviews.length; index++) {
     let rate = "";
     let dt = new Date(reviews[index].timeStamp);
-    
+   
     if 
-      (Auth.currentUser &&
-      Constants.adminEmails.includes(Auth.currentUser.email)
-    ) {
+    (Auth.currentUser &&
+    Constants.adminEmails.includes(Auth.currentUser.email)
+  ) {
+    actionBtn = `
+      <button class="btn btn-warning delete-adminreview" value="${reviews[index].id}">Delete</button>
+      
+    `;
+  
+    if(reviews[index].mail == Auth.currentUser.email) {
       actionBtn = `
-        <button class="btn btn-warning delete-adminreview" value="${reviews[index].id}">Delete</button>
-        
-      `;
-    
-      if(reviews[index].mail == Auth.currentUser.email) {
-        actionBtn = `
-        <button class="btn btn-primary edit-review" value="${reviews[index].id}" data-price="${prodSummary.price}">Edit</button>
-        <button class="btn btn-warning delete-review" value="${reviews[index].id}">Delete</button>
-      `;
+      <button class="btn btn-primary edit-review" value="${reviews[index].id}" data-price="${prodSummary.price}">Edit</button>
+      <button class="btn btn-warning delete-review" value="${reviews[index].id}">Delete</button>
+    `;
 
-      }
     }
-    
-    else if(reviews[index].mail == Auth.currentUser.email) {
+  }
+  
+  else if(reviews[index].mail == Auth.currentUser.email) {
+    actionBtn = `
+      <button class="btn btn-primary edit-review" value="${reviews[index].id}" data-price="${prodSummary.price}">Edit</button>
+      <button class="btn btn-warning delete-review" value="${reviews[index].id}">Delete</button>
+    `;
+  }
+   
+   
+   
+   
+   if (reviews[index].mail == Auth.currentUser.email) {
       actionBtn = `
         <button class="btn btn-primary edit-review" value="${reviews[index].id}" data-price="${prodSummary.price}">Edit</button>
         <button class="btn btn-warning delete-review" value="${reviews[index].id}">Delete</button>
@@ -144,22 +155,6 @@ export async function review_page(productId) {
     });
   }
 
-  const deleteAdminBtn = document.getElementsByClassName("delete-adminreview");
-
-  for (let i = 0; i < deleteAdminBtn.length; i++) {
-    deleteAdminBtn[i].addEventListener("click", function () {
-      let tmpid = this.getAttribute("value");
-      let ch = confirm("Are you sure ?");
-      if (!ch) {
-        return;
-      }
-      FirebaseController.deleteAdminReview(tmpid).then((result) => {
-        alert(result.msg);
-        window.location.reload();
-      });
-    });
-  }
-
   // Edit Action
   const editBtn = document.getElementsByClassName("edit-review");
 
@@ -181,7 +176,10 @@ export async function review_page(productId) {
         $("#reviewid").val(tmpid);
         $("#content-review").val(result.content);
         $("#modal-review-product").modal("show");
+          
       });
+      
     });
+      
   }
 }
