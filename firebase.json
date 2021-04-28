@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "ac-cmsc5373-sprint3",
+    "site": "raghurahul-a2zcart",
     "public": "public",
     "ignore": [
       "firebase.json",

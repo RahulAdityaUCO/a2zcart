@@ -63,15 +63,7 @@ export async function review_page(productId) {
     `;
   }
    
-   
-   
-   
-   if (reviews[index].mail == Auth.currentUser.email) {
-      actionBtn = `
-        <button class="btn btn-primary edit-review" value="${reviews[index].id}" data-price="${prodSummary.price}">Edit</button>
-        <button class="btn btn-warning delete-review" value="${reviews[index].id}">Delete</button>
-      `;
-    } else {
+  else {
       actionBtn = "";
     }
 
@@ -181,5 +173,20 @@ export async function review_page(productId) {
       
     });
       
+  }
+
+  const deleteAdminReview = document.getElementsByClassName("delete-adminreview");
+    for (let i = 0; i < deleteAdminReview.length; i++) {
+      deleteAdminReview[i].addEventListener("click", function () {
+        let tmpid = this.getAttribute("value");
+        let ch = confirm("Are you sure ?");
+        if (!ch) {
+          return;
+        }
+        FirebaseController.deleteAdminReview(tmpid).then((result) => {
+          alert(result.msg);
+          window.location.reload();
+        });
+      });
   }
 }
